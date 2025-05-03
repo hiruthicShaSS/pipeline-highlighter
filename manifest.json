@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "Pipeline highlighter",
+  "version": "1.0",
+  "description": "Highlight Outlook emails regarding the Azure pipeline completion status",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://outlook.live.com/*", "https://outlook.office.com/*", "https://outlook.office365.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "16": "images/icon.png",
+    "48": "images/icon.png",
+    "128": "images/icon.png"
+  }
+}
