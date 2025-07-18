@@ -1,25 +1,60 @@
-const successColor = "#00ff0059";
-const failureColor = "#ff000059";
+const SUCCESS_COLOR = "#00ff0059";
+const FAILURE_COLOR = "#ff000059";
 
-const PR_SUCCESS_MESSAGE = "[pr build succeeded]";
-const PR_FAILURE_MESSAGE = "[pr build failed]";
-const SUCCESS_MESSAGE = "[build succeeded]";
-const FAILURE_MESSAGE = "[build failed]";
+// Pipeline providers (extensible)
+const PIPELINE_PROVIDERS = [
+  {
+    name: "Azure DevOps",
+    successRegex: /\[build succeeded\]|\[pr build succeeded\]/i,
+    failureRegex: /\[build failed\]|\[pr build failed\]/i,
+  },
+  {
+    name: "Bitbucket",
+    successRegex: /pipeline #\d+ (succeeded|passed)|\[bitbucket\]\s*pipeline for .* (succeeded|passed)/i,
+    failureRegex: /pipeline #\d+ (failed|error|failing)|\[bitbucket\]\s*pipeline for .* failed/i,
+  }
+  // Add more pipeline providers here
+];
+
+// Mail providers (extensible)
+const MAIL_PROVIDERS = [
+  {
+    name: "Outlook",
+    selector: "span[title='']"
+  },
+  {
+    name: "GmailBody",
+    selector: "div[role='listitem'], div.a3s, .ii.gt, .a3s.aiL"
+  },
+  {
+    name: "GmailInbox",
+    selector: "tr.zA"
+  }
+  // Add more mail providers here
+];
+
+
+function getHighlightType(text, provider) {
+  if (provider.successRegex?.test(text)) return "success";
+  if (provider.failureRegex?.test(text)) return "failure";
+  return null;
+}
+
 
 function highlightEmails() {
-  const spans = document.querySelectorAll("span[title='']");
+  // Collect all elements from all mail providers
+  const elements = MAIL_PROVIDERS.flatMap(provider => Array.from(document.querySelectorAll(provider.selector)));
 
-  spans.forEach((span) => {
-    const spanText = span.textContent.toLowerCase();
-		console.log(spanText);
-
-    if (spanText.includes(SUCCESS_MESSAGE) || spanText.includes(PR_SUCCESS_MESSAGE)) {
-      span.style.backgroundColor = successColor;
-    }
-
-		if (spanText.includes(FAILURE_MESSAGE) || spanText.includes(PR_FAILURE_MESSAGE)) {
-      span.style.backgroundColor = failureColor;
-    }
+  elements.forEach((el) => {
+    let text = el.textContent ? el.textContent.toLowerCase() : "";
+    PIPELINE_PROVIDERS.forEach(provider => {
+      const type = getHighlightType(text, provider);
+      if (type === "success") {
+        el.style.backgroundColor = SUCCESS_COLOR;
+      } else if (type === "failure") {
+        el.style.backgroundColor = FAILURE_COLOR;
+      }
+    });
   });
 }
 
